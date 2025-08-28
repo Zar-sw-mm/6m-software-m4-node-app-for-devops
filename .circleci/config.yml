@@ -65,10 +65,10 @@ jobs:
       - docker/build:
           image: zarni009/test-cicd
           # tag with current git revision (commit hash) and latest tag
-          tag: << pipeline.git.revision >>, latest
+          tag: << pipeline.git.revision >>,latest
       - docker/push:
           image: zarni009/test-cicd
-          tag: << pipeline.git.revision >>, latest
+          tag: << pipeline.git.revision >>,latest
 
 # Define the workflow for job execution order
 workflows:
