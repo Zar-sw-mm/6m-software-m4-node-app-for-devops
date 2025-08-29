@@ -91,7 +91,7 @@ jobs:
             # Build Docker image and push to Heroku container registry
             heroku container:push web -a zar-su-devops
             # Release the Docker image
-            heroku container:release web -a -su-devops
+            heroku container:release web -a zar-su-devops
 
 # Define the workflow for job execution order
 workflows:
