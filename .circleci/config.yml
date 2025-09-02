@@ -4,6 +4,7 @@ orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.1.4
   heroku: circleci/heroku@2.0.0
+  snyk: snyk/snyk@1.5.0
 
 # commands - resuable sets of steps
 commands:
@@ -50,6 +51,36 @@ jobs:
       - run: |
           echo "Running tests..."
           npm run test
+  scan:
+    docker:
+      - image: cimg/node:16.10
+    environment:
+      IMAGE_NAME: wongshennan/test_repository
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/check:
+          docker-username: DOCKERHUB_LOGIN
+          docker-password: DOCKERHUB_PASSWORD
+      - run: docker build -t $IMAGE_NAME .
+      - snyk/scan:
+          docker-image-name: $IMAGE_NAME
+          # The "fail-on-issues: false" option makes the scan report issues but always exit with code 0
+          # This allows the pipeline to continue even if vulnerabilities are found
+          fail-on-issues: true
+          severity-threshold: high
+
+  # The 'codescan' job performs static code analysis on your source code
+  codescan:
+    docker:
+      - image: cimg/node:16.10
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - snyk/install
+      - run: |
+          snyk code test
   # this job needs to build and push Docker images
   publish:
     # CircleCI provides a special executor that allows Docker-in-Docker
@@ -128,6 +159,9 @@ workflows:
       - test: # Run test job after build
           requires:
             - build # test depends on build
+      - scan:
+          requires:
+            - build
       - publish:
           requires:
             - test
